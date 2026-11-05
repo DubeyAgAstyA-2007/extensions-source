@@ -29,10 +29,32 @@ dependencyResolutionManagement {
 rootProject.name = "Keiyoushi"
 
 /**
- * Add or remove modules to load as needed for local development here.
+ * =================================================================================================
+ * CURATED SAFE SOURCES (NON-NSFW, MAINSTREAM MANGA & MANHWA)
+ * =================================================================================================
  */
-loadAllIndividualExtensions()
-// loadIndividualExtension("all", "mangadex")
+// loadAllIndividualExtensions() // Disabled: prevents building unneeded / NSFW sources
+
+// 1. Comprehensive Global Catalogs & Aggregators
+loadIndividualExtension("all", "mangafire")
+loadIndividualExtension("all", "mangadex")
+loadIndividualExtension("all", "mangaupdates")
+loadIndividualExtension("all", "batoto")
+loadIndividualExtension("all", "comick")
+
+// 2. High-Quality Webtoon & Manga Aggregators
+loadIndividualExtension("en", "weebcentral")
+loadIndividualExtension("en", "webtoons")
+loadIndividualExtension("en", "webnovel")
+
+// 3. Top Action / Fantasy Manhwa Scanlators & Portals
+loadIndividualExtension("en", "comicasura")
+loadIndividualExtension("en", "flamecomics")
+loadIndividualExtension("en", "infernalvoidscans") // Hive Scans package
+loadIndividualExtension("en", "drakescan")
+loadIndividualExtension("en", "mistscans")
+loadIndividualExtension("en", "thunderscans")
+loadIndividualExtension("en", "elftoon")
 
 /**
  * ===================================== COMMON CONFIGURATION ======================================
@@ -47,7 +69,7 @@ File(rootDir, "lib").eachDir { include("lib:${it.name}") }
 File(rootDir, "lib-multisrc").eachDir { include("lib-multisrc:${it.name}") }
 
 /**
- * ======================================== HELPER FUNCTION ========================================
+ * ======================================== HELPER FUNCTIONS =======================================
  */
 fun loadAllIndividualExtensions() {
     File(rootDir, "src").eachDir { dir ->
@@ -56,6 +78,7 @@ fun loadAllIndividualExtensions() {
         }
     }
 }
+
 fun loadIndividualExtension(lang: String, name: String) {
     include("src:$lang:$name")
 }
