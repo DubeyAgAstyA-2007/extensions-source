@@ -1,0 +1,39 @@
+name: Sync Curated Keiyoushi Repo
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'sources.json'
+      - 'scripts/sync_repo.py'
+      - '.github/workflows/sync-keiyoushi.yml'
+
+jobs:
+  sync:
+    name: Sync and Publish Extensions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Keiyoushi Sync Script
+        run: |
+          python scripts/sync_repo.py
+
+      - name: Deploy Curated Metadata to repo branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: repo
+          publish_dir: ./repo
+          commit_message: "Auto-sync curated Keiyoushi extensions [skip ci]"
