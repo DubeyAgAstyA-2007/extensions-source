@@ -1,228 +1,68 @@
-name: CI
+name: Build and Publish Selected Extensions
 
 on:
   push:
     branches:
       - main
-    paths:
-      - '**'
-      - '!**.md'
-      - '!.github/**'
-      - '.github/scripts/**'
-      - '!.github/scripts/audit-packages.py'
-      - '!.github/scripts/cleanup-releases.py'
-      - '.github/workflows/build_push.yml'
   workflow_dispatch:
-    inputs:
-      full_rebuild:
-        description: Rebuild and republish every extension instead of only what changed since the last successful run
-        type: boolean
-        default: false
-
-permissions: {}
-
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
-
-env:
-  CI_CHUNK_SIZE: 80
-  IS_PR_CHECK: false
 
 jobs:
-  prepare:
-    name: Prepare job
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      actions: read
-    outputs:
-      matrix: ${{ steps.generate-matrices.outputs.matrix }}
-      delete: ${{ steps.generate-matrices.outputs.delete }}
-      full_rebuild: ${{ steps.base.outputs.full_rebuild || steps.generate-matrices.outputs.full_rebuild }}
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - id: base
-        name: Get last successful CI commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-          FULL_REBUILD: ${{ inputs.full_rebuild }}
-        run: |
-          # Empty tree: every module is diffed as new, so everything gets rebuilt
-          empty_tree=$(git hash-object -t tree /dev/null)
-          if [ "$FULL_REBUILD" = "true" ]; then
-            sha=$empty_tree
-          else
-            sha=$(python ./.github/scripts/find-base-sha.py build_push.yml)
-          fi
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
-          if [ "$sha" = "$empty_tree" ]; then
-            echo "full_rebuild=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - id: generate-matrices
-        name: Create output matrices
-        env:
-          BASE_SHA: ${{ steps.base.outputs.sha }}
-        run: |
-          python ./.github/scripts/generate-build-matrices.py "$BASE_SHA"
-
   build:
-    name: Populate Gradle cache
+    name: Build Curated Extensions
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    permissions:
+      contents: write
+
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          java-version: 25
-          distribution: temurin
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
-        with:
-          cache-read-only: false
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build and lint shared modules
+      - name: Generate Local Signing Key
         run: |
-          MODULES=(":core")
-          for dir in lib lib-multisrc; do
-            for build_file in "$dir"/*/build.gradle.kts; do
-              MODULES+=(":${dir}:$(basename "$(dirname "$build_file")")")
-            done
-          done
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
 
-          # One extension, so that what only extension builds need is cached too
-          extension=$(find src -mindepth 2 -maxdepth 2 -type d | sort | head -n 1)
-          MODULES+=(":${extension//\//:}")
-
-          TASKS=()
-          for module in "${MODULES[@]}"; do
-            TASKS+=("${module}:assembleRelease" "${module}:lintRelease")
-          done
-          ./gradlew "${TASKS[@]}"
-
-  build-extensions:
-    name: Build extensions (${{ matrix.chunk.number }})
-    needs: prepare
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: ${{ toJson(fromJson(needs.prepare.outputs.matrix).chunk) != '[]' }}
-    strategy:
-      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Java
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
-        with:
-          java-version: 25
-          distribution: temurin
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
-        with:
-          cache-read-only: true
-
-      - name: Prepare signing key
-        run: |
-          echo ${{ secrets.SIGNING_KEY }} | base64 -d > signingkey.jks
-
-      - name: Build extensions (${{ matrix.chunk.number }})
+      - name: Build Enabled Extensions
         env:
-          MODULES: ${{ join(matrix.chunk.modules, ' ') }}
-          ALIAS: ${{ secrets.ALIAS }}
-          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PATH: ${{ github.workspace }}/debug.keystore
+          KEY_STORE_PASSWORD: android
+          KEY_PASSWORD: android
+          ALIAS: androiddebugkey
         run: |
-          TASKS=()
-          for module in $MODULES; do
-            TASKS+=("${module}:assembleRelease")
-          done
-          ./gradlew "${TASKS[@]}"
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APKs (${{ matrix.chunk.number }})
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: "github.repository == 'DubeyAgastyA-2007/extensions-source'"
-        with:
-          name: "individual-apks-${{ matrix.chunk.number }}"
-          path: |
-            **/build/outputs/apk/release/*.apk
-            **/build/outputs/jar/release/*.jar
-            **/build/keiyoushi-source-info.json
-          retention-days: 1
-
-      - name: Clean up CI files
-        if: always()
-        run: rm signingkey.jks
-
-  publish:
-    name: Publish extension repo
-    needs: [prepare, build-extensions]
-    # Run whenever there's anything to publish, new/changed builds OR only deletions
-    if: >-
-      always() &&
-      github.repository == 'DubeyAgastyA-2007/extensions-source' &&
-      needs.prepare.result == 'success' &&
-      needs.build-extensions.result != 'failure' &&
-      needs.build-extensions.result != 'cancelled' &&
-      needs.prepare.outputs.delete != '[]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - name: Download APK artifacts
-        if: needs.build-extensions.result == 'success'
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          path: ~/apk-artifacts
-
-      - name: Checkout main branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: main
-          path: main
-          persist-credentials: false
-
-      - name: Checkout repo branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: keiyoushi/extensions
-          token: ${{ secrets.BOT_PAT }}
-          ref: repo
-          path: repo
-          persist-credentials: true
-
-      - name: Publish and deploy repo
-        env:
-          DELETE: ${{ needs.prepare.outputs.delete }}
-          FULL_REBUILD: ${{ needs.prepare.outputs.full_rebuild }}
-          GH_TOKEN: ${{ secrets.BOT_PAT }}
+      - name: Generate Repository Index & Publish
         run: |
-          cd repo
-          python -m pip install --user --upgrade protobuf
-          python -u ../main/.github/scripts/publish-repo.py "$DELETE" "$GITHUB_SHA" "$FULL_REBUILD"
-          git config --global user.email "156378334+keiyoushi-bot@users.noreply.github.com"
-          git config --global user.name "keiyoushi-bot"
-          git status
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git commit -m "Update extensions repo"
-            git push
-            curl https://purge.jsdelivr.net/gh/keiyoushi/extensions@repo/index.json
-            curl https://purge.jsdelivr.net/gh/keiyoushi/extensions@repo/index.pb
-          else
-            echo "No changes to commit"
-          fi
+          chmod +x gradlew
+          # Runs Keiyoushi's built-in inspector tool to create index.min.json and repo structure
+          ./gradlew runInspector --no-daemon || true
+
+          mkdir -p repo-output
+          find . -name "*.apk" -exec cp {} repo-output/ \;
+          find . -name "index.min.json" -exec cp {} repo-output/ \; || true
+          find . -name "index.pb" -exec cp {} repo-output/ \; || true
+
+      - name: Deploy to repo branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: repo
+          publish_dir: ./repo-output
+          force_orphan: true
