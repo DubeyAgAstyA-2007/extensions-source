@@ -1,0 +1,32 @@
+name: Sync Upstream Keiyoushi
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Runs automatically every day at 03:00 UTC
+  workflow_dispatch:     # Allows you to click a button and trigger it manually
+
+jobs:
+  sync:
+    name: Pull Upstream Updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch and Merge Upstream
+        run: |
+          git remote add upstream https://github.com/keiyoushi/extensions-source.git
+          git fetch upstream main
+          # Merge upstream fixes while preserving your settings.gradle.kts
+          git merge upstream/main -X ours --no-edit || true
+          git push origin main
