@@ -34,21 +34,23 @@ rootProject.name = "Keiyoushi"
  * =================================================================================================
  */
 // Multi-Language Aggregators & Platforms
+loadSafeExtension("all", "mangafire")
 loadSafeExtension("all", "mangadex")
-loadSafeExtension("all", "mangaupdates")
-loadSafeExtension("all", "bato")
-loadSafeExtension("all", "comick")
-loadSafeExtension("all", "webtoons") // Correct path for Webtoons
+loadSafeExtension("all", "comicklive")
+loadSafeExtension("all", "webtoons")
 
 // English Aggregators & Scanlations
+loadSafeExtension("en", "bbato")
 loadSafeExtension("en", "weebcentral")
 loadSafeExtension("en", "webnovel")
 loadSafeExtension("en", "comicasura")
 loadSafeExtension("en", "asurascans")
 loadSafeExtension("en", "flamecomics")
 loadSafeExtension("en", "infernalvoidscans") // Hive Scans
+loadSafeExtension("en", "drakescans")
 loadSafeExtension("en", "mistscans")
 loadSafeExtension("en", "thunderscans")
+loadSafeExtension("en", "elftoon")
 
 /**
  * ===================================== COMMON CONFIGURATION ======================================
