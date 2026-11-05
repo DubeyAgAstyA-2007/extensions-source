@@ -1,0 +1,81 @@
+{
+  "name": "Agastya's Curated Keiyoushi Repo",
+  "website": "https://github.com/DubeyAgAstyA-2007/extensions-source",
+  "packages": [
+    {
+      "name": "MangaFire",
+      "pkg": "eu.kanade.tachiyomi.extension.all.mangafire",
+      "category": "Multi-Language / Global Aggregator"
+    },
+    {
+      "name": "MangaDex",
+      "pkg": "eu.kanade.tachiyomi.extension.all.mangadex",
+      "category": "Multi-Language / Global Aggregator"
+    },
+    {
+      "name": "Bato.to (Bbato)",
+      "pkg": "eu.kanade.tachiyomi.extension.en.bbato",
+      "category": "Multi-Language / Global Aggregator"
+    },
+    {
+      "name": "Comick (Unoriginal)",
+      "pkg": "eu.kanade.tachiyomi.extension.all.comicklive",
+      "category": "Multi-Language / Global Aggregator"
+    },
+    {
+      "name": "Weeb Central",
+      "pkg": "eu.kanade.tachiyomi.extension.en.weebcentral",
+      "category": "Official / High-Quality"
+    },
+    {
+      "name": "Webtoons.com",
+      "pkg": "eu.kanade.tachiyomi.extension.all.webtoons",
+      "category": "Official / High-Quality"
+    },
+    {
+      "name": "WebNovel",
+      "pkg": "eu.kanade.tachiyomi.extension.en.webnovel",
+      "category": "Official / High-Quality"
+    },
+    {
+      "name": "Comic Asura",
+      "pkg": "eu.kanade.tachiyomi.extension.en.comicasura",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Asura Scans",
+      "pkg": "eu.kanade.tachiyomi.extension.en.asurascans",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Flame Comics",
+      "pkg": "eu.kanade.tachiyomi.extension.en.flamecomics",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Hive Scans",
+      "pkg": "eu.kanade.tachiyomi.extension.en.infernalvoidscans",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Drake Scans",
+      "pkg": "eu.kanade.tachiyomi.extension.en.drakescans",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Mist Scans",
+      "pkg": "eu.kanade.tachiyomi.extension.en.mistscans",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Thunder Scans",
+      "pkg": "eu.kanade.tachiyomi.extension.en.thunderscans",
+      "category": "Action & Fantasy Manhwa"
+    },
+    {
+      "name": "Elf Toon",
+      "pkg": "eu.kanade.tachiyomi.extension.en.elftoon",
+      "category": "Action & Fantasy Manhwa"
+    }
+  ]
+}
