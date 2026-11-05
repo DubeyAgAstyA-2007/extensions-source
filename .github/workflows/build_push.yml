@@ -23,10 +23,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Generate Local Signing Key
+      - name: Generate Local Signing Keystore
         run: |
           keytool -genkeypair -v \
             -keystore debug.keystore \
@@ -37,27 +38,28 @@ jobs:
             -storepass android \
             -keypass android \
             -dname "CN=Android Debug,O=Android,C=US"
+          # Copy to common filenames expected by Gradle build-logic
+          cp debug.keystore signing-key.jks
+          cp debug.keystore keystore.jks
 
       - name: Build Enabled Extensions
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/debug.keystore
           KEY_STORE_PASSWORD: android
           KEY_PASSWORD: android
           ALIAS: androiddebugkey
+          SIGNING_KEY_PASSWORD: android
+          SIGNING_STORE_PASSWORD: android
+          SIGNING_KEY_ALIAS: androiddebugkey
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Generate Repository Index & Publish
+      - name: Prepare Repository Output
         run: |
-          chmod +x gradlew
-          # Runs Keiyoushi's built-in inspector tool to create index.min.json and repo structure
-          ./gradlew runInspector --no-daemon || true
-
           mkdir -p repo-output
           find . -name "*.apk" -exec cp {} repo-output/ \;
-          find . -name "index.min.json" -exec cp {} repo-output/ \; || true
-          find . -name "index.pb" -exec cp {} repo-output/ \; || true
+          find . -name "*.json" -path "*/build/*" -exec cp {} repo-output/ \; || true
+          find . -name "*.pb" -path "*/build/*" -exec cp {} repo-output/ \; || true
 
       - name: Deploy to repo branch
         uses: peaceiris/actions-gh-pages@v4
