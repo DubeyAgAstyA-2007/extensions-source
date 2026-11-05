@@ -156,7 +156,7 @@ jobs:
 
       - name: Upload APKs (${{ matrix.chunk.number }})
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: "github.repository == 'keiyoushi/extensions-source'"
+        if: "github.repository == 'DubeyAgastyA-2007/extensions-source'"
         with:
           name: "individual-apks-${{ matrix.chunk.number }}"
           path: |
@@ -175,7 +175,7 @@ jobs:
     # Run whenever there's anything to publish, new/changed builds OR only deletions
     if: >-
       always() &&
-      github.repository == 'keiyoushi/extensions-source' &&
+      github.repository == 'DubeyAgastyA-2007/extensions-source' &&
       needs.prepare.result == 'success' &&
       needs.build-extensions.result != 'failure' &&
       needs.build-extensions.result != 'cancelled' &&
