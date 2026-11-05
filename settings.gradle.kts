@@ -33,25 +33,22 @@ rootProject.name = "Keiyoushi"
  * CURATED SAFE SOURCES (NON-NSFW, MAINSTREAM MANGA & MANHWA)
  * =================================================================================================
  */
-// loadAllIndividualExtensions() // Disabled to prevent compiling entire 3000+ catalog
+// Multi-Language Aggregators & Platforms
+loadSafeExtension("all", "mangadex")
+loadSafeExtension("all", "mangaupdates")
+loadSafeExtension("all", "bato")
+loadSafeExtension("all", "comick")
+loadSafeExtension("all", "webtoons") // Correct path for Webtoons
 
-// 1. Comprehensive Global Catalogs & Aggregators
-loadIndividualExtension("all", "mangadex")
-loadIndividualExtension("all", "mangaupdates")
-loadIndividualExtension("all", "bato")          // Bato.to's actual folder name is "bato"
-loadIndividualExtension("all", "comick")
-
-// 2. High-Quality Webtoon & Manga Aggregators
-loadIndividualExtension("en", "weebcentral")
-loadIndividualExtension("en", "webtoons")
-loadIndividualExtension("en", "webnovel")
-
-// 3. Top Action / Fantasy Manhwa Scanlators & Portals
-loadIndividualExtension("en", "comicasura")
-loadIndividualExtension("en", "flamecomics")
-loadIndividualExtension("en", "infernalvoidscans") // Hive Scans
-loadIndividualExtension("en", "mistscans")
-loadIndividualExtension("en", "thunderscans")
+// English Aggregators & Scanlations
+loadSafeExtension("en", "weebcentral")
+loadSafeExtension("en", "webnovel")
+loadSafeExtension("en", "comicasura")
+loadSafeExtension("en", "asurascans")
+loadSafeExtension("en", "flamecomics")
+loadSafeExtension("en", "infernalvoidscans") // Hive Scans
+loadSafeExtension("en", "mistscans")
+loadSafeExtension("en", "thunderscans")
 
 /**
  * ===================================== COMMON CONFIGURATION ======================================
@@ -68,16 +65,12 @@ File(rootDir, "lib-multisrc").eachDir { include("lib-multisrc:${it.name}") }
 /**
  * ======================================== HELPER FUNCTIONS =======================================
  */
-fun loadAllIndividualExtensions() {
-    File(rootDir, "src").eachDir { dir ->
-        dir.eachDir { subdir ->
-            include("src:${dir.name}:${subdir.name}")
-        }
+// Checks if directory exists before including to prevent Gradle configuration crashes
+fun loadSafeExtension(lang: String, name: String) {
+    val dir = File(rootDir, "src/$lang/$name")
+    if (dir.exists() && dir.isDirectory) {
+        include("src:$lang:$name")
     }
-}
-
-fun loadIndividualExtension(lang: String, name: String) {
-    include("src:$lang:$name")
 }
 
 fun File.eachDir(block: (File) -> Unit) {
