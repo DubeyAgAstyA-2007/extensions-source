@@ -33,13 +33,12 @@ rootProject.name = "Keiyoushi"
  * CURATED SAFE SOURCES (NON-NSFW, MAINSTREAM MANGA & MANHWA)
  * =================================================================================================
  */
-// loadAllIndividualExtensions() // Disabled: prevents building unneeded / NSFW sources
+// loadAllIndividualExtensions() // Disabled to prevent compiling entire 3000+ catalog
 
 // 1. Comprehensive Global Catalogs & Aggregators
-loadIndividualExtension("all", "mangafire")
 loadIndividualExtension("all", "mangadex")
 loadIndividualExtension("all", "mangaupdates")
-loadIndividualExtension("all", "batoto")
+loadIndividualExtension("all", "bato")          // Bato.to's actual folder name is "bato"
 loadIndividualExtension("all", "comick")
 
 // 2. High-Quality Webtoon & Manga Aggregators
@@ -50,11 +49,9 @@ loadIndividualExtension("en", "webnovel")
 // 3. Top Action / Fantasy Manhwa Scanlators & Portals
 loadIndividualExtension("en", "comicasura")
 loadIndividualExtension("en", "flamecomics")
-loadIndividualExtension("en", "infernalvoidscans") // Hive Scans package
-loadIndividualExtension("en", "drakescan")
+loadIndividualExtension("en", "infernalvoidscans") // Hive Scans
 loadIndividualExtension("en", "mistscans")
 loadIndividualExtension("en", "thunderscans")
-loadIndividualExtension("en", "elftoon")
 
 /**
  * ===================================== COMMON CONFIGURATION ======================================
